@@ -5,10 +5,7 @@ import bootcamp_2025_03_manthos.services.MessageService;
 import bootcamp_2025_03_manthos.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -25,15 +22,28 @@ public class MessagesController {
         this.messageService = messageService;
         this.jwtEncoder = jwtEncoder;
     }
-
+/*
     @GetMapping("")
     public List<Message> getMessages() throws BootcampException {
         return messageService.getMessages();
-    }
+    }*/
 
     @GetMapping("/{id}")
     public Message getMessageById(@PathVariable Long id) throws BootcampException {
         return messageService.getMessageById(id);
+    }
+
+    @PostMapping("")
+    public Message createMessage(@RequestBody Message message) {
+
+
+        //return response from LLM
+
+        Message responseMessage = messageService.createMessageAndGetCompletion(message);
+
+
+        return responseMessage;
+
     }
 
 
