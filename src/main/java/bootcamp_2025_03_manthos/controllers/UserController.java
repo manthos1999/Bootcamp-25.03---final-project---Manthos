@@ -1,19 +1,25 @@
 package bootcamp_2025_03_manthos.controllers;
 
+
 import bootcamp_2025_03_manthos.model.User;
 import bootcamp_2025_03_manthos.exceptions.BootcampException;
+import bootcamp_2025_03_manthos.model.TokenDTO;
 import bootcamp_2025_03_manthos.repository.UserRepository;
 import bootcamp_2025_03_manthos.services.UserService;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.core.Authentication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import org.springframework.security.oauth2.jwt.JwtClaimsSet;
 import org.springframework.security.oauth2.jwt.JwtEncoder;
+import org.springframework.security.oauth2.jwt.JwtEncoderParameters;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/users")
@@ -28,7 +34,7 @@ public class UserController {
     private UserRepository userRepository;
 
     @Autowired
-    public UserController(UserService userService, JwtEncoder jwtEncoder) {
+    public UserController(UserService userService, JwtEncoder jwtEncoder, AuthenticationManager authenticationManager) {
         this.userService = userService;
         this.jwtEncoder = jwtEncoder;
 
@@ -67,6 +73,30 @@ public class UserController {
         User createdUser = userService.create(user);
         return createdUser;
 
+    }
+
+    @PostMapping("/login")
+    public TokenDTO login(Authentication authentication) throws BootcampException {
+
+        User loggedInUser = ((User)authentication.getPrincipal());
+        // 2) Build JWT claims
+        Instant now = Instant.now();
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+                .issuer("self")
+                .issuedAt(now)
+                .expiresAt(now.plus(6, ChronoUnit.HOURS))
+                .subject(loggedInUser.getUsername())
+//                .claim("roles", auth.getAuthorities().stream()
+//                        .map(a -> a.getAuthority()).toList())
+                .build();
+
+        // 3) Encode & return token
+        String token = jwtEncoder.encode(JwtEncoderParameters.from(claims))
+                .getTokenValue();
+
+        TokenDTO tokenDTO = new TokenDTO();
+        tokenDTO.setToken(token);
+        return tokenDTO;
     }
 
     @PutMapping(value = "/{id}")

@@ -11,8 +11,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
 
 
-    @Query(nativeQuery = true, value = "SELECT * FROM users WHERE email = ?1")
-    @EntityGraph(attributePaths = "threads")
+    @Query("SELECT u FROM User u WHERE u.email = ?1")
+    @EntityGraph(attributePaths = {"threads"})
     Optional<User> findByEmail(String email);
 
 

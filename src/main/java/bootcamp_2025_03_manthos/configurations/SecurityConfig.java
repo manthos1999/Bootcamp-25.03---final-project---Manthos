@@ -13,6 +13,8 @@ import bootcamp_2025_03_manthos.services.UserService;
 import org.hibernate.query.sqm.internal.NoParamSqmCopyContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.ProviderManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -69,15 +71,15 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
 
                         .requestMatchers("/actuator/**").permitAll()
-                        .anyRequest().permitAll()
+                        .anyRequest().authenticated()
                 )
-//                .userDetailsService(userService)
-//                // enable HTTP Basic
-//                .httpBasic(Customizer.withDefaults())
-//                // replace the deprecated jwt() reference with:
-//                .oauth2ResourceServer(oauth2 -> oauth2
-//                        .jwt(Customizer.withDefaults())
-//                )
+                .userDetailsService(userService)
+                // enable HTTP Basic
+                .httpBasic(Customizer.withDefaults())
+                // replace the deprecated jwt() reference with:
+                .oauth2ResourceServer(oauth2 -> oauth2
+                        .jwt(Customizer.withDefaults())
+                )
                 // disable CSRF if you’re only serving a pure REST API
                 .csrf(csrf -> csrf.disable());
 
@@ -87,11 +89,7 @@ public class SecurityConfig {
     @Bean
     public PasswordEncoder passwordEncoder() {
         return NoOpPasswordEncoder.getInstance();
-
-        // If you want to use a custom password encoder, you can implement PasswordEncoder interface
-//        return new BCryptPasswordEncoder();
     }
-
 
 
 
@@ -135,6 +133,14 @@ public class SecurityConfig {
 
         // 4) plug into the Nimbus decoder
         return NimbusJwtDecoder.withPublicKey(publicKey).build();
+    }
+
+    @Bean
+    public AuthenticationManager authenticationManager(UserService userService) {
+        DaoAuthenticationProvider provider = new DaoAuthenticationProvider();
+        provider.setUserDetailsService(userService);
+        provider.setPasswordEncoder(passwordEncoder());
+        return new ProviderManager(provider);
     }
 
 

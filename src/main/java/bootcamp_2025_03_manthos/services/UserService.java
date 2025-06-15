@@ -86,9 +86,11 @@ public class UserService implements UserDetailsService {
     }
 
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        System.out.println("Authenticating: " + username);
         User user = null;
         try {
             user = this.getUserByEmail(username);
+            System.out.println("User password from DB: '" + user.getPassword() + "'");
             return user;
         } catch (BootcampException e) {
             throw new UsernameNotFoundException("User not found with username: " + username, e);

@@ -5,6 +5,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import bootcamp_2025_03_manthos.model.ChatThread;
 
 import java.sql.Timestamp;
 
@@ -21,7 +22,7 @@ public class Message {
     private Long id;
 
     @Basic
-    @Column(name = "content", nullable = false)
+    @Column(name = "content", nullable = false, columnDefinition = "TEXT")
     private String content;
 
     @Basic
@@ -35,8 +36,15 @@ public class Message {
     public String completionModel;
 
     @ManyToOne
-    @JoinColumn(name = "chatthread_id")
+    @JoinColumn(name = "thread_id")
     @JsonBackReference
-    private ChatThread chatThread;
+    private ChatThread thread;
+
+    @PrePersist
+    protected void onCreate() {
+        if (this.createdAt == null) {
+            this.createdAt = new Timestamp(System.currentTimeMillis());
+        }
+    }
 
 }

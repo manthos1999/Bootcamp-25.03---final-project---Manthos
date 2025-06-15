@@ -2,10 +2,6 @@ package bootcamp_2025_03_manthos.model;
 
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
@@ -36,7 +32,7 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
-    private List<ChatThread> chatThreads = new ArrayList<>();
+    private List<ChatThread> threads = new ArrayList<>();
 
     public User() {
     }
@@ -77,6 +73,7 @@ public class User implements UserDetails {
         return new ArrayList<>();
     }
 
+    @Override
     public String getPassword() {
         return password;
     }

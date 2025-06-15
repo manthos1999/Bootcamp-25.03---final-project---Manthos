@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/chatThreads")
+@RequestMapping("/threads")
 public class ChatThreadController {
 
     @Autowired
@@ -24,30 +24,30 @@ public class ChatThreadController {
     }
 
     @GetMapping("")
-    public List<ChatThread> getChatThreads() throws BootcampException {
+    public List<ChatThread> getThreads() throws BootcampException {
         return chatThreadService.getChatThreads();
     }
 
     @GetMapping(value = "/{id}")
-    public ChatThread getChatThreadById(@PathVariable long id) throws BootcampException {
+    public ChatThread getThreadById(@PathVariable long id) throws BootcampException {
         return chatThreadService.getChatThreadById(id);
     }
 
     @PostMapping("")
-    public ChatThread createChatThread(@RequestBody ChatThread chatThread) throws BootcampException {
-        return chatThreadService.createChatThread(chatThread);
+    public ChatThread createThread(@RequestBody ChatThread chatThread) throws BootcampException {
+        return chatThreadService.createThread(chatThread);
     }
 
     @PutMapping("/{id}")
-    public ChatThread updateChatThreadById(@PathVariable long id, @RequestBody ChatThread chatThread) throws BootcampException {
-        ChatThread updatedChatThread = chatThreadService.updateChatThreadById(id, chatThread);
+    public ChatThread updateThreadById(@PathVariable long id, @RequestBody ChatThread chatThread) throws BootcampException {
+        ChatThread updatedChatThread = chatThreadService.updateThreadById(id, chatThread);
 
         return updatedChatThread;
 
     }
 
     @DeleteMapping("/{id}")
-    public ChatThread deleteChatThreadById(@PathVariable long id) throws BootcampException {
+    public ChatThread deleteThreadById(@PathVariable long id) throws BootcampException {
         ChatThread deletedChatThread = chatThreadService.deleteById(id);
 
         return deletedChatThread;

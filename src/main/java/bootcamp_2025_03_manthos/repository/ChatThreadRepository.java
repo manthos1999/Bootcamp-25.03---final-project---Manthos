@@ -9,7 +9,7 @@ import java.util.Optional;
 public interface ChatThreadRepository extends JpaRepository<ChatThread, Long> {
 
     @Query(nativeQuery = true,
-            value = "SELECT * FROM chat_threads WHERE name ?1")
-    Optional<Thread> findByNameWithNativeQuery(String name);
+            value = "SELECT * FROM threads WHERE name ?1")
+    Optional<java.lang.Thread> findByNameWithNativeQuery(String name);
 
 }

@@ -37,7 +37,7 @@ public class ChatThreadService {
         }
     }
 
-    public ChatThread createChatThread(ChatThread chatThread) throws BootcampException {
+    public ChatThread createThread(ChatThread chatThread) throws BootcampException {
         if (chatThread.getId() != null) {
             throw new BootcampException("Chat thread must be null");
         }
@@ -53,7 +53,7 @@ public class ChatThreadService {
         return chatThreadRepository.save(chatThread);
     }
 
-    public ChatThread updateChatThreadById(Long chatIdToUpdate, ChatThread newChatThread) throws BootcampException {
+    public ChatThread updateThreadById(Long chatIdToUpdate, ChatThread newChatThread) throws BootcampException {
 
         ChatThread existingChatThread = getChatThreadById(chatIdToUpdate);
 

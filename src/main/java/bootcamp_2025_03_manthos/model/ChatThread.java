@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "chat_threads")
+@Table(name = "threads")
 public class ChatThread {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Id
@@ -30,11 +30,9 @@ public class ChatThread {
     @JsonBackReference
     private User user;
 
-    @OneToMany(mappedBy = "chatThread", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @OneToMany(mappedBy = "thread", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     @JsonManagedReference
     private List<Message> messages = new ArrayList<>();
-
-
 
     public Long getId() {
         return id;

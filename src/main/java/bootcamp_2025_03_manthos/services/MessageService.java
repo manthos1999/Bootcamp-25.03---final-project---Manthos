@@ -1,10 +1,12 @@
 package bootcamp_2025_03_manthos.services;
 
+import bootcamp_2025_03_manthos.model.ChatThread;
 import bootcamp_2025_03_manthos.exceptions.BootcampException;
 import bootcamp_2025_03_manthos.repository.ChatThreadRepository;
 import bootcamp_2025_03_manthos.repository.MessagesRepository;
 import bootcamp_2025_03_manthos.model.Message;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 import bootcamp_2025_03_manthos.model.dto.ChatMessage;
@@ -14,14 +16,18 @@ import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 
 
+import java.sql.Timestamp;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class MessageService {
 
-private String groqApiKey = "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";
+    @Value("${groq.api.key}")
+    private String groqApiKey;
 
+    @Autowired
     private MessagesRepository messagesRepository;
     private ChatThreadRepository chatThreadRepository;
 
@@ -48,6 +54,25 @@ private String groqApiKey = "gsk_qyKSakD86gvCN1KgCv6bWGdyb3FYgcydbnNmtnakQc85gCC
 
     public Message createMessageAndGetCompletion(Message newMessage) {
 
+        newMessage.setLLMGenerated(false);
+        newMessage.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+
+        ChatThread thread = chatThreadRepository.findById(newMessage.getThread().getId())
+                .orElseThrow(() -> new RuntimeException("Thread not found"));
+
+        newMessage.setThread(thread);
+        messagesRepository.save(newMessage);
+        List<Message> threadMessages = messagesRepository.findByThreadOrderByCreatedAtAsc(thread);
+
+        List<ChatMessage> chatMessages = new ArrayList<>();
+
+        chatMessages.add(new ChatMessage("system", "You are a helpfull assistant"));
+
+        for (Message msg : threadMessages) {
+            String role = msg.isLLMGenerated() ? "assistant" : "user";
+            chatMessages.add(new ChatMessage(role, msg.getContent()));
+        }
+
         // create a RestTemplate instance to make HTTP requests
         RestTemplate restTemplate = new RestTemplate();
 
@@ -58,12 +83,13 @@ private String groqApiKey = "gsk_qyKSakD86gvCN1KgCv6bWGdyb3FYgcydbnNmtnakQc85gCC
         // creating JSON Body that matches groq api key
         ChatCompletionRequest chatCompletionRequest = new ChatCompletionRequest();
         chatCompletionRequest.setModel(newMessage.getCompletionModel());
+        chatCompletionRequest.setMessages(chatMessages);
 
 
-        ChatMessage systemMessage = new ChatMessage("system", "You are a helpfull assistant");
-        ChatMessage userMessage = new ChatMessage("user", newMessage.getContent());
-
-        chatCompletionRequest.setMessages(List.of(systemMessage, userMessage));
+//        ChatMessage systemMessage = new ChatMessage("system", "You are a helpfull assistant");
+//        ChatMessage userMessage = new ChatMessage("user", newMessage.getContent());
+//
+//        chatCompletionRequest.setMessages(List.of(systemMessage, userMessage));
 
         // final Http object with header and body
         HttpEntity<ChatCompletionRequest> httpEntity =
@@ -80,7 +106,10 @@ private String groqApiKey = "gsk_qyKSakD86gvCN1KgCv6bWGdyb3FYgcydbnNmtnakQc85gCC
         responseMessage.setLLMGenerated(true);
         responseMessage.setContent(response.getChoices().get(0).getMessage().getContent());
         responseMessage.setCompletionModel(response.getModel());
-        responseMessage.setChatThread(newMessage.getChatThread());
+        responseMessage.setThread(newMessage.getThread());
+        responseMessage.setCreatedAt(new Timestamp(System.currentTimeMillis()));
+
+        messagesRepository.save(responseMessage);
 
         return responseMessage;
 
