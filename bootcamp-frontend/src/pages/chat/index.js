@@ -1,11 +1,15 @@
 import Head from "next/head";
 import {useEffect, useState} from "react";
+import axios from "axios";
 
 
 export default function ChatPage() {
 
 
     const [threads, setThreads] = useState(null)
+    const [activeThreadId, setActiveThreadId] = useState(null);
+    const [messages, setMessages] = useState([]);
+    const [loadingMessages, setLoadingMessages] = useState(false);
 
     //When the component mounts, (when the Componend is rendered for the first time)
     useEffect(() => {
@@ -18,34 +22,43 @@ export default function ChatPage() {
             window.location.href = "/login";
         }
 
-        let threadsFromServer = [
-            {
-                id: 1,
-                threadName: "My Thread 1",
-                createdAt: "2025-03-01T10:00:00Z",
-            },
-            {
-                id: 2,
-                threadName: "hello thread",
-                createdAt: "2025-03-02T10:00:00Z",
-            },
-            {
-                id: 3,
-                threadName: "Last Thread",
-                createdAt: "2025-03-03T10:00:00Z",
-            },
-            {
-                id: 3,
-                threadName: "This is really the last thread",
-                createdAt: "2025-03-03T10:00:00Z",
-            },
-        ]
-
-        setThreads(threadsFromServer);
-
-
+       axios.get("http://localhost:8080/threads/user", {
+            headers: {
+                Authorization: `Bearer ${token}`
+            }
+       })
+           .then(response => {
+               console.log("Threads from server:", response.data)
+               setThreads(response.data);
+           })
+           .catch(error =>  {
+               console.error("Failed to fetch threads", error);
+           })
 
     }, []);
+
+    async function loadMessages(threadId) {
+        setLoadingMessages(true);
+        setActiveThreadId(threadId);
+        try {
+            const token = localStorage.getItem("token");
+            const response = await fetch(`http://localhost:8080/messages/thread/${threadId}`, {
+                headers: {
+                    "Authorization": `Bearer ${token}`,
+                    "Content-Type": "application/json"
+                }
+            });
+            if (!response.ok) throw new Error("Failed to fetch messages");
+            const data = await response.json();
+            setMessages(Array.isArray(data) ? data : data.messages || []);
+        } catch (error) {
+            console.error("Error loading messages:", error);
+            setMessages([]);
+        } finally {
+            setLoadingMessages(false);
+        }
+    }
+
 
     return (
         <>
@@ -78,22 +91,15 @@ export default function ChatPage() {
                     <aside className="threads-list">
                         <h2>Threads</h2>
                         <div className="threads">
-                            {/*<div className="thread-item active">Thread 1</div>*/}
-                            {/*<div className="thread-item">Thread 2</div>*/}
-                            {/*<div className="thread-item">Thread 3</div>*/}
                             {threads && threads.map((thread) => (
-                                <div key={thread.id} className="thread-item">{thread.threadName}</div>
+                                <div
+                                    key={thread.id}
+                                    onClick={() => loadMessages(thread.id)}
+                                    className={`thread-item ${thread.id === activeThreadId ? "active" : ""}`}
+                                >
+                                    {thread.title || thread.name}
+                                </div>
                             ))}
-
-                            {/*
-                        if(threads != null and threads.length > 0) {
-                            for (let i = 0; i < threads.length; i++) {
-                                let thread = threads[i];
-                                return <div className="thread-item">{thread.threadName}</div>
-                            }
-                        }
-                        */}
-
                         </div>
                     </aside>
                     <main className="main-container">
@@ -108,9 +114,21 @@ export default function ChatPage() {
                                 </select>
                             </div>
                             <div className="messages">
-                                <div className="message bot">Hello! I’m ChatGPT—how can I help you today?</div>
-                                <div className="message user">Can you show me how this chat layout works?</div>
+                                {messages.length === 0 ? (
+                                    <div className="message bot">Select a thread to view messages</div>
+                                ) : (
+                                    messages.map((msg) => {
+                                        const messageClass = msg.llmgenerated ? "bot" : "user";
+                                        return (
+                                            <div key={msg.id} className={`message ${messageClass}`}>
+                                                {msg.content}
+                                            </div>
+                                        );
+                                    })
+                                )}
                             </div>
+
+
                             <div className="input-container">
                                 <input type="text" placeholder="Type a message…"/>
                                 <button>➤</button>

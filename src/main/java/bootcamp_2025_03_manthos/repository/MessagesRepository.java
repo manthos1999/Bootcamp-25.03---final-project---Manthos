@@ -16,5 +16,6 @@ public interface MessagesRepository extends JpaRepository<Message, Long> {
     Optional<Message> findByNameWithNativeQuery(String name);
 
     List<Message> findByThreadOrderByCreatedAtAsc(ChatThread thread);
+    List<Message> findByThreadId(Long threadId);
 
 }

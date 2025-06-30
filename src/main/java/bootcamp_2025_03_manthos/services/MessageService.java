@@ -116,4 +116,10 @@ public class MessageService {
 
     }
 
+    public List<Message> getMessagesByThreadId(Long threadId) {
+        ChatThread thread = chatThreadRepository.findById(threadId)
+                .orElseThrow(() -> new RuntimeException("Thread not found"));
+        return messagesRepository.findByThreadOrderByCreatedAtAsc(thread);
+    }
+
 }

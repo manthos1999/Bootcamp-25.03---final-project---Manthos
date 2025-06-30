@@ -49,6 +49,12 @@ public class UserService implements UserDetailsService {
         throw new BootcampException(HttpStatus.NOT_FOUND, "User not found");
     }
 
+    public Long findUserIdByEmail(String email) throws BootcampException {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new BootcampException(("User not found with email:" +email)))
+                .getId();
+    }
+
     public User create(User user) throws BootcampException {
         if (user.getId() != null) {
             throw new BootcampException(HttpStatus.BAD_REQUEST, "User id must be null");

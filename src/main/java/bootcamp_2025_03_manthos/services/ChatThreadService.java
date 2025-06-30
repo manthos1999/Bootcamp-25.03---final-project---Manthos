@@ -53,6 +53,10 @@ public class ChatThreadService {
         return chatThreadRepository.save(chatThread);
     }
 
+    public List<ChatThread> getThreadsByUserId(Long userId) throws BootcampException {
+        return chatThreadRepository.findByUserId(userId);
+    }
+
     public ChatThread updateThreadById(Long chatIdToUpdate, ChatThread newChatThread) throws BootcampException {
 
         ChatThread existingChatThread = getChatThreadById(chatIdToUpdate);
